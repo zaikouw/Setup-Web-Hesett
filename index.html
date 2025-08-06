@@ -161,40 +161,40 @@
             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
         }
 
-        .device-list {
-            display: grid;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .device-item {
+        .device-info {
             background: rgba(255,255,255,0.1);
             padding: 20px;
             border-radius: 12px;
+            margin: 15px 0;
             border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .device-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        .device-item.selected {
-            border: 2px solid #4CAF50;
-            background: rgba(76, 175, 80, 0.1);
-        }
-
-        .device-item h4 {
+        .device-info h4 {
             color: #4CAF50;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .device-item p {
-            margin: 5px 0;
-            font-size: 0.9em;
-            opacity: 0.8;
+        .device-info p {
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+
+        .disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
         }
 
         .manual-ip {
@@ -216,43 +216,25 @@
             text-align: center;
             font-weight: bold;
         }
-
-        .connection-status {
-            text-align: center;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            font-weight: 600;
-        }
-
-        .connected {
-            background: rgba(76, 175, 80, 0.3);
-            border: 2px solid #4CAF50;
-        }
-
-        .disconnected {
-            background: rgba(244, 67, 54, 0.3);
-            border: 2px solid #f44336;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🔌 Hesett Box IP Configuration</h1>
-            <p>Configure and connect to your ESP32 device</p>
+            <p>Connect to your ESP32 device automatically</p>
         </div>
 
         <div class="step">
             <h3>🔍 Step 1: Find Your ESP32 Device</h3>
-            <p>Automatically scan your network for Hesett Box devices.</p>
-            <button class="button" onclick="scanNetwork()" id="scan-btn">Scan Network</button>
-            <div id="scan-results"></div>
+            <p>We'll automatically discover your ESP32 device on the network.</p>
+            <button class="button" onclick="findESP32Device()" id="find-btn">Find ESP32 Device</button>
+            <div id="find-results"></div>
         </div>
 
         <div class="step">
             <h3>🔧 Step 2: Manual IP Configuration</h3>
-            <p>If auto-scan doesn't find your device, enter the IP manually.</p>
+            <p>If auto-discovery doesn't work, enter the IP manually.</p>
             <div class="manual-ip">
                 <label>ESP32 IP Address:</label>
                 <div class="ip-inputs">
@@ -277,11 +259,10 @@
     </div>
 
     <script>
-        let discoveredDevices = [];
-        let selectedDevice = null;
+        let discoveredDevice = null;
         let isConnected = false;
 
-        // Common ESP32 IP ranges to scan
+        // Common ESP32 IP ranges to try if auto-discovery fails
         const commonIpRanges = [
             '192.168.1',
             '192.168.0', 
@@ -291,31 +272,29 @@
             '172.20.0',
         ];
 
-        // Network scanning with improved reliability
-        async function scanNetwork() {
-            const btn = document.getElementById('scan-btn');
+        // Find ESP32 device using its /ip endpoint
+        async function findESP32Device() {
+            const btn = document.getElementById('find-btn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Scanning...';
+            btn.innerHTML = '<span class="loading"></span> Finding ESP32...';
 
-            showStatus('scan-results', '<div class="status info">🔍 Scanning network for ESP32 devices...</div>', 'info');
+            showStatus('find-results', '<div class="status info">🔍 Looking for ESP32 device...</div>', 'info');
 
             try {
-                discoveredDevices = [];
-                let scanProgress = 0;
-                const totalScans = commonIpRanges.length * 254;
+                // First, try to find ESP32 using its /ip endpoint
+                let foundDevice = null;
                 
-                // Scan each IP range
+                // Try common IP ranges for ESP32's /ip endpoint
                 for (const ipRange of commonIpRanges) {
                     for (let i = 1; i <= 254; i++) {
                         const testIp = `${ipRange}.${i}`;
-                        scanProgress++;
                         
                         try {
                             // Use a timeout to avoid hanging
                             const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 1000);
+                            const timeoutId = setTimeout(() => controller.abort(), 2000);
                             
-                            const response = await fetch(`http://${testIp}/status`, {
+                            const response = await fetch(`http://${testIp}/ip`, {
                                 method: 'GET',
                                 headers: { 'Accept': 'application/json' },
                                 mode: 'no-cors',
@@ -324,101 +303,75 @@
                             
                             clearTimeout(timeoutId);
                             
-                            // If we get here, device responded
-                            const deviceInfo = {
+                            // If we get here, ESP32 responded with its IP
+                            foundDevice = {
                                 ip: testIp,
                                 status: 'online',
                                 type: 'ESP32 Hesett Box'
                             };
                             
-                            discoveredDevices.push(deviceInfo);
-                            
-                            // Update progress
-                            const progress = Math.round((scanProgress / totalScans) * 100);
-                            showStatus('scan-results', `<div class="status info">🔍 Scanning... ${progress}% complete</div>`, 'info');
-                            
-                            // Found one in this range, move to next
-                            break;
+                            // Try to get additional info from /status endpoint
+                            try {
+                                const statusResponse = await fetch(`http://${testIp}/status`, {
+                                    method: 'GET',
+                                    headers: { 'Accept': 'application/json' },
+                                    mode: 'no-cors'
+                                });
+                                
+                                // If status endpoint works, we have a confirmed ESP32
+                                foundDevice.confirmed = true;
+                                break;
+                            } catch (e) {
+                                // Status endpoint failed, but /ip worked
+                                foundDevice.confirmed = false;
+                            }
                             
                         } catch (e) {
                             // Device not reachable, continue
-                            if (scanProgress % 50 === 0) {
-                                const progress = Math.round((scanProgress / totalScans) * 100);
-                                showStatus('scan-results', `<div class="status info">🔍 Scanning... ${progress}% complete</div>`, 'info');
-                            }
                         }
                     }
+                    
+                    if (foundDevice) break;
                 }
 
-                // Also try some known IPs
-                const knownIPs = ['192.168.58.115', '192.168.58.113', '192.168.58.114'];
-                for (const knownIp of knownIPs) {
-                    try {
-                        const response = await fetch(`http://${knownIp}/status`, {
-                            method: 'GET',
-                            headers: { 'Accept': 'application/json' },
-                            mode: 'no-cors'
-                        });
-                        
-                        const deviceInfo = {
-                            ip: knownIp,
-                            status: 'online',
-                            type: 'ESP32 Hesett Box'
-                        };
-                        
-                        discoveredDevices.push(deviceInfo);
-                        
-                    } catch (e) {
-                        // Known IP not reachable
-                    }
-                }
-
-                let devicesHtml = '';
-                if (discoveredDevices.length > 0) {
-                    devicesHtml = `
-                        <div class="device-list">
-                            ${discoveredDevices.map(device => `
-                                <div class="device-item" onclick="selectDevice('${device.ip}')">
-                                    <h4>✅ ESP32 Found</h4>
-                                    <p><strong>IP Address:</strong> ${device.ip}</p>
-                                    <p><strong>Status:</strong> Online</p>
-                                    <p><strong>Type:</strong> ${device.type}</p>
-                                </div>
-                            `).join('')}
+                if (foundDevice) {
+                    discoveredDevice = foundDevice;
+                    
+                    const deviceHtml = `
+                        <div class="device-info">
+                            <h4>✅ ESP32 Device Found!</h4>
+                            <p><strong>IP Address:</strong> ${foundDevice.ip}</p>
+                            <p><strong>Status:</strong> Online</p>
+                            <p><strong>Type:</strong> ${foundDevice.type}</p>
+                            <p><strong>Confirmed:</strong> ${foundDevice.confirmed ? 'Yes' : 'Partial'}</p>
                         </div>
                     `;
+                    
+                    showStatus('find-results', deviceHtml, 'success');
+                    
+                    // Automatically test connection
+                    testConnection(foundDevice.ip);
+                    
+                } else {
+                    showStatus('find-results', `
+                        <div class="status error">
+                            <h4>❌ ESP32 Device Not Found</h4>
+                            <p>No ESP32 device found on the network.</p>
+                            <p>Please ensure:</p>
+                            <ul>
+                                <li>ESP32 is powered on and connected to WiFi</li>
+                                <li>ESP32 is on the same network as this device</li>
+                                <li>Try manual IP configuration below</li>
+                            </ul>
+                        </div>
+                    `, 'error');
                 }
-
-                const scanResultsHtml = `
-                    <div class="status success">
-                        <h4>🌐 Network Scan Complete</h4>
-                        <p>Found ${discoveredDevices.length} ESP32 device(s) on the network.</p>
-                        ${discoveredDevices.length === 0 ? '<p>No ESP32 devices found. Try manual IP configuration below.</p>' : ''}
-                    </div>
-                    ${devicesHtml}
-                `;
-                
-                showStatus('scan-results', scanResultsHtml, 'success');
                 
             } catch (error) {
-                showStatus('scan-results', `<div class="status error">❌ Network scan failed: ${error.message}</div>`, 'error');
+                showStatus('find-results', `<div class="status error">❌ Device discovery failed: ${error.message}</div>`, 'error');
             }
 
-            btn.innerHTML = 'Scan Complete';
-        }
-
-        // Device selection
-        function selectDevice(ip) {
-            selectedDevice = ip;
-            
-            // Update UI to show selected device
-            document.querySelectorAll('.device-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-            
-            // Test connection immediately
-            testConnection(ip);
+            btn.innerHTML = 'Find Complete';
         }
 
         // Test manual IP connection
@@ -439,7 +392,7 @@
 
         // Test connection to ESP32
         async function testConnection(ip) {
-            const testIP = ip || selectedDevice;
+            const testIP = ip || (discoveredDevice ? discoveredDevice.ip : null);
             if (!testIP) {
                 showStatus('connection-details', '<div class="status error">❌ No IP address provided</div>', 'error');
                 return;
@@ -448,7 +401,7 @@
             showStatus('connection-details', '<div class="status info">🔍 Testing connection...</div>', 'info');
 
             try {
-                // Test basic connectivity
+                // Test basic connectivity using /status endpoint
                 const response = await fetch(`http://${testIP}/status`, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
@@ -457,7 +410,20 @@
 
                 // If we get here, connection successful
                 isConnected = true;
-                selectedDevice = testIP;
+                discoveredDevice = { ip: testIP, status: 'online', type: 'ESP32 Hesett Box' };
+                
+                // Try to get additional info from /ip endpoint
+                let deviceInfo = `IP: ${testIP}`;
+                try {
+                    const ipResponse = await fetch(`http://${testIP}/ip`, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' },
+                        mode: 'no-cors'
+                    });
+                    deviceInfo += ` | MAC: Available`;
+                } catch (e) {
+                    deviceInfo += ` | MAC: Not available`;
+                }
                 
                 const connectionHtml = `
                     <div class="status success">
@@ -501,11 +467,11 @@
             }
         }
 
-        // Auto-scan on page load
+        // Auto-find on page load
         window.addEventListener('load', function() {
-            // Auto-scan after a short delay
+            // Auto-find after a short delay
             setTimeout(() => {
-                scanNetwork();
+                findESP32Device();
             }, 1000);
         });
     </script>
