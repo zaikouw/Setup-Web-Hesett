@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hesett Box Setup</title>
+    <title>Hesett Box IP Configuration</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -30,13 +30,13 @@
         }
 
         .header h1 {
-            font-size: 3em;
+            font-size: 2.5em;
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 1.2em;
+            font-size: 1.1em;
             opacity: 0.9;
         }
 
@@ -69,6 +69,7 @@
             font-weight: 600;
             margin: 10px 5px;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
         .button:hover {
@@ -81,6 +82,14 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+
+        .button.secondary {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+
+        .button.secondary:hover {
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.5);
         }
 
         .status {
@@ -126,8 +135,9 @@
 
         .input-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
+            font-size: 14px;
         }
 
         .input-group input {
@@ -138,15 +148,21 @@
             background: rgba(255,255,255,0.1);
             color: white;
             font-size: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .input-group input::placeholder {
             color: rgba(255,255,255,0.5);
         }
 
+        .input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+        }
+
         .device-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
@@ -180,52 +196,90 @@
             font-size: 0.9em;
             opacity: 0.8;
         }
+
+        .manual-ip {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .ip-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .ip-inputs input {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+
+        .disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Hesett Box Setup</h1>
-            <p>Simple Web-Based Setup - No Installation Required</p>
+            <h1>🔌 Hesett Box IP Configuration</h1>
+            <p>Configure and connect to your ESP32 device</p>
         </div>
 
         <div class="step">
-            <h3>🔍 Step 1: Find Your Hesett Box</h3>
-            <p>We'll automatically scan your network for Hesett Box devices.</p>
+            <h3>🔍 Step 1: Find Your ESP32 Device</h3>
+            <p>Automatically scan your network for Hesett Box devices.</p>
             <button class="button" onclick="scanNetwork()" id="scan-btn">Scan Network</button>
             <div id="scan-results"></div>
         </div>
 
         <div class="step">
-            <h3>🔧 Step 2: Configure Device</h3>
-            <p>Set up your Hesett Box with your restaurant information.</p>
-            <div class="input-group">
-                <label for="restaurant-id">Restaurant ID:</label>
-                <input type="text" id="restaurant-id" placeholder="Enter your restaurant ID">
+            <h3>🔧 Step 2: Manual IP Configuration</h3>
+            <p>If auto-scan doesn't find your device, enter the IP manually.</p>
+            <div class="manual-ip">
+                <label>ESP32 IP Address:</label>
+                <div class="ip-inputs">
+                    <input type="number" id="ip1" min="0" max="255" value="192" placeholder="192">
+                    <input type="number" id="ip2" min="0" max="255" value="168" placeholder="168">
+                    <input type="number" id="ip3" min="0" max="255" value="58" placeholder="58">
+                    <input type="number" id="ip4" min="0" max="255" value="115" placeholder="115">
+                </div>
+                <button class="button secondary" onclick="testManualIP()" id="manual-test-btn">Test Connection</button>
             </div>
-            <button class="button" onclick="configureDevice()" id="config-btn" disabled>Configure Device</button>
-            <div id="config-results"></div>
+            <div id="manual-results"></div>
         </div>
 
         <div class="step">
-            <h3>🎯 Step 3: Pair Buttons</h3>
-            <p>Pair your Hesett buttons with the device.</p>
-            <button class="button" onclick="startPairing()" id="pair-btn" disabled>Start Pairing</button>
-            <button class="button" onclick="stopPairing()" id="stop-pair-btn" disabled>Stop Pairing</button>
-            <div id="pairing-status"></div>
-        </div>
-
-        <div class="step">
-            <h3>✅ Step 4: Test Connection</h3>
-            <p>Verify everything is working correctly.</p>
-            <button class="button" onclick="testConnection()" id="test-btn" disabled>Test Connection</button>
-            <div id="test-results"></div>
+            <h3>✅ Step 3: Connection Status</h3>
+            <div id="connection-status" class="connection-status disconnected">
+                <h4>🔴 Not Connected</h4>
+                <p>No ESP32 device connected</p>
+            </div>
+            <div id="connection-details"></div>
         </div>
     </div>
 
     <script>
         let discoveredDevices = [];
         let selectedDevice = null;
+        let isConnected = false;
 
         // Common ESP32 IP ranges to scan
         const commonIpRanges = [
@@ -237,40 +291,61 @@
             '172.20.0',
         ];
 
-        // Network scanning
+        // Network scanning with improved reliability
         async function scanNetwork() {
             const btn = document.getElementById('scan-btn');
             btn.disabled = true;
             btn.innerHTML = '<span class="loading"></span> Scanning...';
 
-            showStatus('scan-results', '<div class="status info">🔍 Scanning network for Hesett Box devices...</div>', 'info');
+            showStatus('scan-results', '<div class="status info">🔍 Scanning network for ESP32 devices...</div>', 'info');
 
             try {
-                // Try common IP ranges
                 discoveredDevices = [];
+                let scanProgress = 0;
+                const totalScans = commonIpRanges.length * 254;
                 
+                // Scan each IP range
                 for (const ipRange of commonIpRanges) {
                     for (let i = 1; i <= 254; i++) {
                         const testIp = `${ipRange}.${i}`;
+                        scanProgress++;
                         
                         try {
+                            // Use a timeout to avoid hanging
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 1000);
+                            
                             const response = await fetch(`http://${testIp}/status`, {
                                 method: 'GET',
                                 headers: { 'Accept': 'application/json' },
-                                mode: 'no-cors'
+                                mode: 'no-cors',
+                                signal: controller.signal
                             });
                             
+                            clearTimeout(timeoutId);
+                            
+                            // If we get here, device responded
                             const deviceInfo = {
                                 ip: testIp,
                                 status: 'online',
-                                type: 'Hesett Box'
+                                type: 'ESP32 Hesett Box'
                             };
                             
                             discoveredDevices.push(deviceInfo);
-                            break; // Found one in this range, move to next
+                            
+                            // Update progress
+                            const progress = Math.round((scanProgress / totalScans) * 100);
+                            showStatus('scan-results', `<div class="status info">🔍 Scanning... ${progress}% complete</div>`, 'info');
+                            
+                            // Found one in this range, move to next
+                            break;
                             
                         } catch (e) {
                             // Device not reachable, continue
+                            if (scanProgress % 50 === 0) {
+                                const progress = Math.round((scanProgress / totalScans) * 100);
+                                showStatus('scan-results', `<div class="status info">🔍 Scanning... ${progress}% complete</div>`, 'info');
+                            }
                         }
                     }
                 }
@@ -288,7 +363,7 @@
                         const deviceInfo = {
                             ip: knownIp,
                             status: 'online',
-                            type: 'Hesett Box'
+                            type: 'ESP32 Hesett Box'
                         };
                         
                         discoveredDevices.push(deviceInfo);
@@ -304,7 +379,7 @@
                         <div class="device-list">
                             ${discoveredDevices.map(device => `
                                 <div class="device-item" onclick="selectDevice('${device.ip}')">
-                                    <h4>✅ Hesett Box Found</h4>
+                                    <h4>✅ ESP32 Found</h4>
                                     <p><strong>IP Address:</strong> ${device.ip}</p>
                                     <p><strong>Status:</strong> Online</p>
                                     <p><strong>Type:</strong> ${device.type}</p>
@@ -317,8 +392,8 @@
                 const scanResultsHtml = `
                     <div class="status success">
                         <h4>🌐 Network Scan Complete</h4>
-                        <p>Found ${discoveredDevices.length} device(s) on the network.</p>
-                        ${discoveredDevices.length === 0 ? '<p>No ESP32 devices found. Please ensure your Hesett Box is connected to the network.</p>' : ''}
+                        <p>Found ${discoveredDevices.length} ESP32 device(s) on the network.</p>
+                        ${discoveredDevices.length === 0 ? '<p>No ESP32 devices found. Try manual IP configuration below.</p>' : ''}
                     </div>
                     ${devicesHtml}
                 `;
@@ -329,8 +404,7 @@
                 showStatus('scan-results', `<div class="status error">❌ Network scan failed: ${error.message}</div>`, 'error');
             }
 
-            btn.innerHTML = 'Network Scan Complete';
-            document.getElementById('config-btn').disabled = false;
+            btn.innerHTML = 'Scan Complete';
         }
 
         // Device selection
@@ -343,159 +417,80 @@
             });
             event.currentTarget.classList.add('selected');
             
-            // Enable configuration
-            document.getElementById('config-btn').disabled = false;
+            // Test connection immediately
+            testConnection(ip);
         }
 
-        // Device configuration
-        async function configureDevice() {
-            if (!selectedDevice) {
-                showStatus('config-results', '<div class="status error">❌ Please select a device first</div>', 'error');
+        // Test manual IP connection
+        async function testManualIP() {
+            const ip1 = document.getElementById('ip1').value;
+            const ip2 = document.getElementById('ip2').value;
+            const ip3 = document.getElementById('ip3').value;
+            const ip4 = document.getElementById('ip4').value;
+            
+            if (!ip1 || !ip2 || !ip3 || !ip4) {
+                showStatus('manual-results', '<div class="status error">❌ Please enter a complete IP address</div>', 'error');
+                return;
+            }
+            
+            const manualIP = `${ip1}.${ip2}.${ip3}.${ip4}`;
+            testConnection(manualIP);
+        }
+
+        // Test connection to ESP32
+        async function testConnection(ip) {
+            const testIP = ip || selectedDevice;
+            if (!testIP) {
+                showStatus('connection-details', '<div class="status error">❌ No IP address provided</div>', 'error');
                 return;
             }
 
-            const restaurantId = document.getElementById('restaurant-id').value.trim();
-            if (!restaurantId) {
-                showStatus('config-results', '<div class="status error">❌ Please enter a Restaurant ID</div>', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('config-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Configuring...';
-
-            showStatus('config-results', '<div class="status info">🔧 Configuring device...</div>', 'info');
+            showStatus('connection-details', '<div class="status info">🔍 Testing connection...</div>', 'info');
 
             try {
-                // Set restaurant ID
-                const response = await fetch(`http://${selectedDevice}/set_restaurant_id`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `restaurant_id=${restaurantId}`,
-                    mode: 'no-cors'
-                });
-
-                const configHtml = `
-                    <div class="status success">
-                        <h4>✅ Configuration Complete</h4>
-                        <p>• Restaurant ID set to: ${restaurantId}</p>
-                        <p>• Device IP: ${selectedDevice}</p>
-                        <p>• Configuration saved successfully</p>
-                    </div>
-                `;
-                showStatus('config-results', configHtml, 'success');
-                
-            } catch (error) {
-                showStatus('config-results', `<div class="status error">❌ Configuration failed: ${error.message}</div>`, 'error');
-            }
-
-            btn.innerHTML = 'Configuration Complete';
-            document.getElementById('pair-btn').disabled = false;
-        }
-
-        // Start pairing
-        async function startPairing() {
-            if (!selectedDevice) {
-                showStatus('pairing-status', '<div class="status error">❌ Please select a device first</div>', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('pair-btn');
-            const stopBtn = document.getElementById('stop-pair-btn');
-            btn.disabled = true;
-            stopBtn.disabled = false;
-
-            showStatus('pairing-status', '<div class="status info">🎯 Starting pairing mode...</div>', 'info');
-
-            try {
-                const response = await fetch(`http://${selectedDevice}/start_pairing`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: '',
-                    mode: 'no-cors'
-                });
-
-                showStatus('pairing-status', `
-                    <div class="status success">
-                        <h4>🎯 Pairing Mode Active</h4>
-                        <p>Hold each button for 10-15 seconds in this order:</p>
-                        <p><strong>1. PAY</strong> • <strong>2. ORDER</strong> • <strong>3. CANCEL</strong> • <strong>4. CALL</strong></p>
-                        <p><strong>Status:</strong> Waiting for PAY button...</p>
-                        <p><strong>Progress:</strong> 1 of 4 buttons</p>
-                    </div>
-                `, 'success');
-
-            } catch (error) {
-                showStatus('pairing-status', `<div class="status error">❌ Failed to start pairing: ${error.message}</div>`, 'error');
-            }
-        }
-
-        // Stop pairing
-        async function stopPairing() {
-            if (!selectedDevice) return;
-
-            const btn = document.getElementById('pair-btn');
-            const stopBtn = document.getElementById('stop-pair-btn');
-            btn.disabled = false;
-            stopBtn.disabled = true;
-
-            try {
-                const response = await fetch(`http://${selectedDevice}/stop_pairing`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: '',
-                    mode: 'no-cors'
-                });
-
-                showStatus('pairing-status', '<div class="status info">⏸️ Pairing mode stopped</div>', 'info');
-
-            } catch (error) {
-                showStatus('pairing-status', `<div class="status error">❌ Failed to stop pairing: ${error.message}</div>`, 'error');
-            }
-        }
-
-        // Test connection
-        async function testConnection() {
-            if (!selectedDevice) {
-                showStatus('test-results', '<div class="status error">❌ Please select a device first</div>', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('test-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Testing...';
-
-            showStatus('test-results', '<div class="status info">🔍 Testing connection...</div>', 'info');
-
-            try {
-                const response = await fetch(`http://${selectedDevice}/status`, {
+                // Test basic connectivity
+                const response = await fetch(`http://${testIP}/status`, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
                     mode: 'no-cors'
                 });
 
-                const testHtml = `
+                // If we get here, connection successful
+                isConnected = true;
+                selectedDevice = testIP;
+                
+                const connectionHtml = `
                     <div class="status success">
-                        <h4>✅ Connection Test Successful!</h4>
-                        <p>• Network connectivity: OK</p>
-                        <p>• ESP32 communication: OK</p>
-                        <p>• Button press detection: OK</p>
-                        <p>🎉 Your Hesett Box is ready!</p>
+                        <h4>✅ Connected Successfully!</h4>
+                        <p><strong>IP Address:</strong> ${testIP}</p>
+                        <p><strong>Status:</strong> Online</p>
+                        <p><strong>Device:</strong> ESP32 Hesett Box</p>
+                        <p>🎉 Your device is ready for use with the Hesett Dashboard!</p>
                     </div>
                 `;
-                showStatus('test-results', testHtml, 'success');
-
+                
+                showStatus('connection-details', connectionHtml, 'success');
+                
+                // Update connection status
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status connected';
+                statusDiv.innerHTML = `
+                    <h4>🟢 Connected</h4>
+                    <p>ESP32 device at ${testIP}</p>
+                `;
+                
             } catch (error) {
-                showStatus('test-results', `<div class="status error">❌ Connection test failed: ${error.message}</div>`, 'error');
+                isConnected = false;
+                showStatus('connection-details', `<div class="status error">❌ Connection failed: ${error.message}</div>`, 'error');
+                
+                // Update connection status
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status disconnected';
+                statusDiv.innerHTML = `
+                    <h4>🔴 Not Connected</h4>
+                    <p>Failed to connect to ${testIP}</p>
+                `;
             }
-
-            btn.innerHTML = 'Test Complete';
         }
 
         // Utility functions
@@ -505,6 +500,14 @@
                 element.innerHTML = message;
             }
         }
+
+        // Auto-scan on page load
+        window.addEventListener('load', function() {
+            // Auto-scan after a short delay
+            setTimeout(() => {
+                scanNetwork();
+            }, 1000);
+        });
     </script>
 </body>
 </html> 
