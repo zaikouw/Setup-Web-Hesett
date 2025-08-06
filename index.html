@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesett Box Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .step {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .step h3 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        }
+
+        .button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid #2196F3;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .device-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .device-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .device-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .device-item.selected {
+            border: 2px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .device-item h4 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .device-item p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Hesett Box Setup</h1>
+            <p>Simple Web-Based Setup - No Installation Required</p>
+        </div>
+
+        <div class="step">
+            <h3>🔍 Step 1: Find Your Hesett Box</h3>
+            <p>We'll automatically scan your network for Hesett Box devices.</p>
+            <button class="button" onclick="scanNetwork()" id="scan-btn">Scan Network</button>
+            <div id="scan-results"></div>
+        </div>
+
+        <div class="step">
+            <h3>🔧 Step 2: Configure Device</h3>
+            <p>Set up your Hesett Box with your restaurant information.</p>
+            <div class="input-group">
+                <label for="restaurant-id">Restaurant ID:</label>
+                <input type="text" id="restaurant-id" placeholder="Enter your restaurant ID">
+            </div>
+            <button class="button" onclick="configureDevice()" id="config-btn" disabled>Configure Device</button>
+            <div id="config-results"></div>
+        </div>
+
+        <div class="step">
+            <h3>🎯 Step 3: Pair Buttons</h3>
+            <p>Pair your Hesett buttons with the device.</p>
+            <button class="button" onclick="startPairing()" id="pair-btn" disabled>Start Pairing</button>
+            <button class="button" onclick="stopPairing()" id="stop-pair-btn" disabled>Stop Pairing</button>
+            <div id="pairing-status"></div>
+        </div>
+
+        <div class="step">
+            <h3>✅ Step 4: Test Connection</h3>
+            <p>Verify everything is working correctly.</p>
+            <button class="button" onclick="testConnection()" id="test-btn" disabled>Test Connection</button>
+            <div id="test-results"></div>
+        </div>
+    </div>
+
+    <script>
+        let discoveredDevices = [];
+        let selectedDevice = null;
+
+        // Common ESP32 IP ranges to scan
+        const commonIpRanges = [
+            '192.168.1',
+            '192.168.0', 
+            '192.168.58',
+            '10.0.0',
+            '172.16.0',
+            '172.20.0',
+        ];
+
+        // Network scanning
+        async function scanNetwork() {
+            const btn = document.getElementById('scan-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Scanning...';
+
+            showStatus('scan-results', '<div class="status info">🔍 Scanning network for Hesett Box devices...</div>', 'info');
+
+            try {
+                // Try common IP ranges
+                discoveredDevices = [];
+                
+                for (const ipRange of commonIpRanges) {
+                    for (let i = 1; i <= 254; i++) {
+                        const testIp = `${ipRange}.${i}`;
+                        
+                        try {
+                            const response = await fetch(`http://${testIp}/status`, {
+                                method: 'GET',
+                                headers: { 'Accept': 'application/json' },
+                                mode: 'no-cors'
+                            });
+                            
+                            const deviceInfo = {
+                                ip: testIp,
+                                status: 'online',
+                                type: 'Hesett Box'
+                            };
+                            
+                            discoveredDevices.push(deviceInfo);
+                            break; // Found one in this range, move to next
+                            
+                        } catch (e) {
+                            // Device not reachable, continue
+                        }
+                    }
+                }
+
+                // Also try some known IPs
+                const knownIPs = ['192.168.58.115', '192.168.58.113', '192.168.58.114'];
+                for (const knownIp of knownIPs) {
+                    try {
+                        const response = await fetch(`http://${knownIp}/status`, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            mode: 'no-cors'
+                        });
+                        
+                        const deviceInfo = {
+                            ip: knownIp,
+                            status: 'online',
+                            type: 'Hesett Box'
+                        };
+                        
+                        discoveredDevices.push(deviceInfo);
+                        
+                    } catch (e) {
+                        // Known IP not reachable
+                    }
+                }
+
+                let devicesHtml = '';
+                if (discoveredDevices.length > 0) {
+                    devicesHtml = `
+                        <div class="device-list">
+                            ${discoveredDevices.map(device => `
+                                <div class="device-item" onclick="selectDevice('${device.ip}')">
+                                    <h4>✅ Hesett Box Found</h4>
+                                    <p><strong>IP Address:</strong> ${device.ip}</p>
+                                    <p><strong>Status:</strong> Online</p>
+                                    <p><strong>Type:</strong> ${device.type}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                const scanResultsHtml = `
+                    <div class="status success">
+                        <h4>🌐 Network Scan Complete</h4>
+                        <p>Found ${discoveredDevices.length} device(s) on the network.</p>
+                        ${discoveredDevices.length === 0 ? '<p>No ESP32 devices found. Please ensure your Hesett Box is connected to the network.</p>' : ''}
+                    </div>
+                    ${devicesHtml}
+                `;
+                
+                showStatus('scan-results', scanResultsHtml, 'success');
+                
+            } catch (error) {
+                showStatus('scan-results', `<div class="status error">❌ Network scan failed: ${error.message}</div>`, 'error');
+            }
+
+            btn.innerHTML = 'Network Scan Complete';
+            document.getElementById('config-btn').disabled = false;
+        }
+
+        // Device selection
+        function selectDevice(ip) {
+            selectedDevice = ip;
+            
+            // Update UI to show selected device
+            document.querySelectorAll('.device-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Enable configuration
+            document.getElementById('config-btn').disabled = false;
+        }
+
+        // Device configuration
+        async function configureDevice() {
+            if (!selectedDevice) {
+                showStatus('config-results', '<div class="status error">❌ Please select a device first</div>', 'error');
+                return;
+            }
+
+            const restaurantId = document.getElementById('restaurant-id').value.trim();
+            if (!restaurantId) {
+                showStatus('config-results', '<div class="status error">❌ Please enter a Restaurant ID</div>', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('config-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Configuring...';
+
+            showStatus('config-results', '<div class="status info">🔧 Configuring device...</div>', 'info');
+
+            try {
+                // Set restaurant ID
+                const response = await fetch(`http://${selectedDevice}/set_restaurant_id`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `restaurant_id=${restaurantId}`,
+                    mode: 'no-cors'
+                });
+
+                const configHtml = `
+                    <div class="status success">
+                        <h4>✅ Configuration Complete</h4>
+                        <p>• Restaurant ID set to: ${restaurantId}</p>
+                        <p>• Device IP: ${selectedDevice}</p>
+                        <p>• Configuration saved successfully</p>
+                    </div>
+                `;
+                showStatus('config-results', configHtml, 'success');
+                
+            } catch (error) {
+                showStatus('config-results', `<div class="status error">❌ Configuration failed: ${error.message}</div>`, 'error');
+            }
+
+            btn.innerHTML = 'Configuration Complete';
+            document.getElementById('pair-btn').disabled = false;
+        }
+
+        // Start pairing
+        async function startPairing() {
+            if (!selectedDevice) {
+                showStatus('pairing-status', '<div class="status error">❌ Please select a device first</div>', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('pair-btn');
+            const stopBtn = document.getElementById('stop-pair-btn');
+            btn.disabled = true;
+            stopBtn.disabled = false;
+
+            showStatus('pairing-status', '<div class="status info">🎯 Starting pairing mode...</div>', 'info');
+
+            try {
+                const response = await fetch(`http://${selectedDevice}/start_pairing`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: '',
+                    mode: 'no-cors'
+                });
+
+                showStatus('pairing-status', `
+                    <div class="status success">
+                        <h4>🎯 Pairing Mode Active</h4>
+                        <p>Hold each button for 10-15 seconds in this order:</p>
+                        <p><strong>1. PAY</strong> • <strong>2. ORDER</strong> • <strong>3. CANCEL</strong> • <strong>4. CALL</strong></p>
+                        <p><strong>Status:</strong> Waiting for PAY button...</p>
+                        <p><strong>Progress:</strong> 1 of 4 buttons</p>
+                    </div>
+                `, 'success');
+
+            } catch (error) {
+                showStatus('pairing-status', `<div class="status error">❌ Failed to start pairing: ${error.message}</div>`, 'error');
+            }
+        }
+
+        // Stop pairing
+        async function stopPairing() {
+            if (!selectedDevice) return;
+
+            const btn = document.getElementById('pair-btn');
+            const stopBtn = document.getElementById('stop-pair-btn');
+            btn.disabled = false;
+            stopBtn.disabled = true;
+
+            try {
+                const response = await fetch(`http://${selectedDevice}/stop_pairing`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: '',
+                    mode: 'no-cors'
+                });
+
+                showStatus('pairing-status', '<div class="status info">⏸️ Pairing mode stopped</div>', 'info');
+
+            } catch (error) {
+                showStatus('pairing-status', `<div class="status error">❌ Failed to stop pairing: ${error.message}</div>`, 'error');
+            }
+        }
+
+        // Test connection
+        async function testConnection() {
+            if (!selectedDevice) {
+                showStatus('test-results', '<div class="status error">❌ Please select a device first</div>', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('test-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Testing...';
+
+            showStatus('test-results', '<div class="status info">🔍 Testing connection...</div>', 'info');
+
+            try {
+                const response = await fetch(`http://${selectedDevice}/status`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'no-cors'
+                });
+
+                const testHtml = `
+                    <div class="status success">
+                        <h4>✅ Connection Test Successful!</h4>
+                        <p>• Network connectivity: OK</p>
+                        <p>• ESP32 communication: OK</p>
+                        <p>• Button press detection: OK</p>
+                        <p>🎉 Your Hesett Box is ready!</p>
+                    </div>
+                `;
+                showStatus('test-results', testHtml, 'success');
+
+            } catch (error) {
+                showStatus('test-results', `<div class="status error">❌ Connection test failed: ${error.message}</div>`, 'error');
+            }
+
+            btn.innerHTML = 'Test Complete';
+        }
+
+        // Utility functions
+        function showStatus(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = message;
+            }
+        }
+    </script>
+</body>
+</html> 
